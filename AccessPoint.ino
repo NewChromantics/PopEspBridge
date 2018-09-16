@@ -1,50 +1,57 @@
 #include <DNSServer.h>
 
-/* Set these to your desired softAP credentials. They are not configurable at runtime */
-auto AccessPointSsid = "FoolMeChickenSoupWithRice";
-auto AccessPointPassword = nullptr;//"12345678";
 
+namespace AccessPoint
+{
+	auto Ssid = "FoolMeChickenSoupWithRice";
+	auto Password = nullptr;//"12345678";
 
+	//	Soft AP network parameters
+	IPAddress RouterIp(192, 168, 0, 1);
+	IPAddress NetMask(255, 255, 255, 0);
+
+	
 //#define ENABLE_DNSSERVER
 #if defined(ENABLE_DNSSERVER)
-// DNS server
-const byte DNS_PORT = 53;
-DNSServer dnsServer;
+	// DNS server
+	const byte DNS_PORT = 53;
+	DNSServer dnsServer;
+	//	hostname for mDNS. Should work at least on windows. Try http://esp8266.local
+	const char *myHostname = "esp8266";
 #endif
 
-
-/* hostname for mDNS. Should work at least on windows. Try http://esp8266.local */
-const char *myHostname = "esp8266";
-
-/* Soft AP network parameters */
-IPAddress AccessPointIp(192, 168, 0, 1);
-IPAddress AccessPointNetMask(255, 255, 255, 0);
-
-
-const IPAddress& GetAccessPointIp()
-{
-	return AccessPointIp;
+	void				Init(std::function<void(const String&)> Debug);
+	void				Update();
+	void				Shutdown();
+	const IPAddress&	GetRouterIp();
+	const char*			GetSsid();
 }
 
-const char* GetAccessPointSsid()
+
+
+const IPAddress& AccessPoint::GetRouterIp()
 {
-	return AccessPointSsid;
+	return RouterIp;
 }
 
-void InitAccessPoint(std::function<void(const String&)> Debug)
+const char* AccessPoint::GetSsid()
 {
-	WiFi.softAPConfig( AccessPointIp, AccessPointIp, AccessPointNetMask );
+	return Ssid;
+}
 
-	Debug( String("Starting access point ") + GetAccessPointSsid() );
-	if ( AccessPointPassword )
-		WiFi.softAP( GetAccessPointSsid(), AccessPointPassword );
+void AccessPoint::Init(std::function<void(const String&)> Debug)
+{
+	WiFi.softAPConfig( RouterIp, RouterIp, NetMask );
+
+	auto Ssid = GetSsid();
+	Debug( String("Starting access point ") + Ssid );
+	if ( Password )
+		WiFi.softAP( Ssid, Password );
 	else
-		WiFi.softAP( GetAccessPointSsid() );
+		WiFi.softAP( Ssid );
 
 	delay(500); // Without delay I've seen the IP address blank
-	Debug("AP IP address: ");
-	 
-	Debug( WiFi.softAPIP().toString() );
+	Debug( String("AP IP address: ") + WiFi.softAPIP().toString() );
 
 #if defined(ENABLE_DNSSERVER)
 	//	Setup the DNS server redirecting all the domains to the apIP
@@ -53,9 +60,13 @@ void InitAccessPoint(std::function<void(const String&)> Debug)
 #endif
 }
 
-void UpdateAccessPoint()
+void AccessPoint::Update()
 {
 #if defined(ENABLE_DNSSERVER)
 	dnsServer.processNextRequest();
 #endif
+}
+
+void AccessPoint::Shutdown()
+{
 }

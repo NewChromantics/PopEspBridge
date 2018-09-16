@@ -1,7 +1,8 @@
 #include <ESP8266WebServer.h>
+#include "TPacket.h"
 
-const IPAddress& GetAccessPointIp();
-const char* GetAccessPointSsid();
+
+
 void InitPanopolyWebServer(ESP8266WebServer& WebServer,std::function<void(const String&)> Debug);
 
 
@@ -35,7 +36,7 @@ void HandleRequest_NotFound()
 	WebServer.send(404, "text/plain", message);
 }
 
-void InitWebServer(std::function<void(const String&)> Debug)
+void InitWebServer(std::function<void(const TPacket&)> OnPacket,std::function<void(const String&)> Debug)
 {
 	// Setup web pages: root, wifi config pages, SO captive portal detectors and not found. 
 	WebServer.onNotFound( HandleRequest_NotFound );
