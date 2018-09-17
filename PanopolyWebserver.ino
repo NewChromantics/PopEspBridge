@@ -82,7 +82,7 @@ void HandleRequest_Root()
 	auto PrintLog = [&](const TPacket& Log)
 	{
 		Content += "<div>";
-		Log.GetString(Content);
+		Log.GetJson(Content);
 		Content += "</div>";
 	};
 	DebugLog::Enum( PrintLog );

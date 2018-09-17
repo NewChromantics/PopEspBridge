@@ -23,15 +23,26 @@ public:
 
 	bool		IsValid() const		{	return mCommand != FourccNull;	}
 	void		Write(std::function<void(const char* Data,unsigned DataLength)> Write) const;
-	void		GetString(String& Str) const;
+	void		GetJson(String& Str) const;
 
 	uint32_t	mCommand;	//	should start with #
 	uint8_t		mLength;
 	char		mBuffer[255];
 };
 
+inline bool JsonCharNeedsEscape(char Char)
+{
+	switch (Char)
+	{
+		case '\\':
+		case '"':
+			return true;
+		default:
+			return false;
+	}
+}
 
-inline void TPacket::GetString(String& Str) const
+inline void TPacket::GetJson(String& Str) const
 {
 	if ( mCommand == FourccNull )
 	{
@@ -40,11 +51,22 @@ inline void TPacket::GetString(String& Str) const
 	}
 
 	auto* CommandChars = reinterpret_cast<const char*>( &mCommand );
-	Str += CommandChars[0];
-	Str += CommandChars[1];
-	Str += CommandChars[2];
+	Str += "{\"";
 	Str += CommandChars[3];
-	Str += ";";
+	Str += CommandChars[2];
+	Str += CommandChars[1];
+	Str += CommandChars[0];
+	Str += "\":";
+
+	//	if binary, output base64 array?
+	//	else, output string
+	//	todo: escape chars
+	Str += "\"";
 	for ( unsigned i=0;	i<mLength;	i++ )
+	{
+		if ( JsonCharNeedsEscape(mBuffer[i]) )
+			Str += '\\';
 		Str += mBuffer[i];
+	}
+	Str += "\"}";
 }
