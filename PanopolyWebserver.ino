@@ -47,6 +47,7 @@ const char Page_Header[] = R"DONTPANIC(
 
 void HandleRequest_PanopolyCss();
 void InitPanopolyWebServer(ESP8266WebServer& WebServer,std::function<void(const String&)> Debug);
+bool IsOnAccessPoint(ESP8266WebServer& WebServer);
 
 namespace Panopoly
 {
@@ -99,6 +100,10 @@ void HandleRequest_Root()
 }
 
 
+void HandleRequest_Hotspot() 
+{
+	HandleRequest_Root();
+}
 
 void HandleRequest_PanopolyCss()
 {
@@ -117,13 +122,18 @@ void HandleRequest_PanopolyCss()
 	//WebServer.client().stop();
 }
 
+
+
 void InitPanopolyWebServer(ESP8266WebServer& WebServer,std::function<void(const String&)> Debug)
 {
 	Panopoly::Debug = Debug;
 	Panopoly::pWebServer = &WebServer;
 
 	Panopoly::Debug("InitPanopolyWebServer");
-	
+
 	WebServer.on("/panopoly.css", HandleRequest_PanopolyCss );
 	WebServer.on("/", HandleRequest_Root );
+
+	//	ios captive portal requests this
+	WebServer.on("/hotspot-detect.html", HandleRequest_Hotspot );	
 }

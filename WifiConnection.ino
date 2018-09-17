@@ -22,6 +22,7 @@ namespace Wifi
 
 bool Wifi::GetLogin(String& Ssid,String& Password)
 {
+	return false;
 	Ssid = "ZaegerMeister";
 	Password = "InTheYear2525";
 	return true;

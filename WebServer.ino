@@ -2,6 +2,10 @@
 #include "TPacket.h"
 
 
+namespace AccessPoint
+{
+	RequestHandler&		GetCaptivePortalRequestHandler();
+}
 
 void InitPanopolyWebServer(ESP8266WebServer& WebServer,std::function<void(const String&)> Debug);
 
@@ -38,6 +42,10 @@ void HandleRequest_NotFound()
 
 void InitWebServer(std::function<void(const TPacket&)> OnPacket,std::function<void(const String&)> Debug)
 {
+	//	handle redirects etc as neccesary
+	auto& Handler = AccessPoint::GetCaptivePortalRequestHandler( WebServer );
+	WebServer.addHandler( &Handler );
+
 	// Setup web pages: root, wifi config pages, SO captive portal detectors and not found. 
 	WebServer.onNotFound( HandleRequest_NotFound );
 

@@ -1,12 +1,11 @@
 #include <ESP8266WiFi.h>
-#include <WiFiClient.h>
 #include <ESP8266mDNS.h>
-#include <EEPROM.h>
 #include "TPacket.h"
 #include "DebugLog.h"
 
-#define ESP_LED	1	//	LED_BUILTIN
+#define ESP_LED	1	//	LED_BUILTIN is wrong on ESP
 
+const char* Hostname = "esp";
 
 void InitWebServer(std::function<void(const TPacket&)> OnPacket,std::function<void(const String&)> Debug);
 void UpdateWebServer();
@@ -31,6 +30,11 @@ namespace LedBlink
 	const unsigned LedPin = ESP_LED;
 	void	Init();
 	void	Blink(unsigned BlinkCount=1);
+}
+
+namespace Dns
+{	
+	void	RegisterHostname(const char* Hostname,uint16_t HttpPort,std::function<void(const String&)> Debug);
 }
 
 //TChannel SerialChannel( Serial, OnSerialRead, OnSerialError );
@@ -70,6 +74,7 @@ void OnSerialRead(const TPacket& Packet)
 void OnWifiConnected(const IPAddress& Address)
 {
 	SerialDebug( String("Connected to wifi, IP is ") + Address.toString() );
+	Dns::RegisterHostname( Hostname, 80, SerialDebug );
 }
 
 
@@ -151,6 +156,7 @@ WifiMode::TYPE State_Wifi::Update()
 void State_AccessPoint::Init()
 {
 	AccessPoint::Init( SerialDebug );
+	Dns::RegisterHostname( Hostname, 80, SerialDebug );
 }
 
 WifiMode::TYPE State_AccessPoint::Update()
@@ -241,3 +247,18 @@ void LedBlink::Blink(unsigned BlinkCount)
 		digitalWrite( LedPin, LOW);
 	}
 }
+
+
+void Dns::RegisterHostname(const char* Hostname,uint16_t HttpPort,std::function<void(const String&)> Debug)
+{
+	//	Setup MDNS responder
+	if ( !MDNS.begin(Hostname) ) 
+	{
+		Debug( String("Failed to setup MDNS responder for ") + Hostname );
+		return;
+	}
+	Debug("mDNS responder started");
+	MDNS.addService("http", "tcp", HttpPort);
+}
+
+	
