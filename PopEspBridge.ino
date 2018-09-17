@@ -10,6 +10,13 @@
 void InitWebServer(std::function<void(const TPacket&)> OnPacket,std::function<void(const String&)> Debug);
 void UpdateWebServer();
 
+namespace Wifi
+{
+	bool	GetLogin(String& Ssid,String& Password);
+	void	Connect(const String& Ssid,const String& Password,std::function<void(const String&)> Debug);
+	void	Update(String& Error,std::function<void(const IPAddress&)> OnConnected);
+	void	Shutdown();
+}
 
 namespace AccessPoint
 {
@@ -50,7 +57,9 @@ void SerialDebug(const String& Text)
 
 void SerialInit()
 {
-	Serial.begin(9600);
+	delay(1000);
+	Serial.begin(57600);
+	Serial.println("");
 	SerialDebug("Serial initialised");
 }
 
@@ -64,6 +73,11 @@ void OnSerialError(const String& Error)
 void OnSerialRead(const TPacket& Packet)
 {
 	//	send to websocket
+}
+
+void OnWifiConnected(const IPAddress& Address)
+{
+	SerialDebug( String("Connected to wifi, IP is ") + Address.toString() );
 }
 
 
@@ -109,25 +123,36 @@ namespace State_Wifi
 
 WifiMode::TYPE State_Bootup::Update()
 {
-	//	read eeprom, if set, connect to wifi, otherwise, make config accesspoint
+	//	here we should decide if we've tried too many times with a ssid/pass and show the access point
+	String Ssid,Password;
+	if ( Wifi::GetLogin( Ssid, Password ) )
+		return WifiMode::Wifi;
+	
 	return WifiMode::AccessPoint;
 }
 
 void State_Wifi::Init()
 {
-	/*
 	String Ssid,Password;
-	GetWifiLogin( Ssid, Password );
-	InitWifi( Ssid, Password, SerialDebug );
-	*/
+	if ( !Wifi::GetLogin( Ssid, Password ) )
+	{
+		SerialDebug("Unexpected no login availible for wifi");
+		return;
+	}
+	Wifi::Connect( Ssid, Password, SerialDebug );
 }
 
 WifiMode::TYPE State_Wifi::Update()
 {
-	//	check wifi state
-	//	check for lost connection
-	SerialDebug("Lost wifi connection");
-	return WifiMode::Bootup;
+	String Error;
+	Wifi::Update( Error, OnWifiConnected );
+	if ( Error.length() )
+	{
+		SerialDebug( Error );
+		return WifiMode::Bootup;
+	}
+
+	return WifiMode::Wifi;
 }
 
 
