@@ -1,5 +1,5 @@
 #include <ESP8266WebServer.h>
-
+#include "DebugLog.h"
 
 
 namespace AccessPoint
@@ -77,6 +77,15 @@ void HandleRequest_Root()
 		Content += AccessPoint::GetSsid();
 		Content += "</div>";
 	}
+
+	//	show logs
+	auto PrintLog = [&](const TPacket& Log)
+	{
+		Content += "<div>";
+		Log.GetString(Content);
+		Content += "</div>";
+	};
+	DebugLog::Enum( PrintLog );
 
 	WebServer.send(200, "text/html", Content );
 /*

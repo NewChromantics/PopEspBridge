@@ -3,6 +3,7 @@
 #include <ESP8266mDNS.h>
 #include <EEPROM.h>
 #include "TPacket.h"
+#include "DebugLog.h"
 
 #define ESP_LED	1	//	LED_BUILTIN
 
@@ -34,22 +35,13 @@ namespace LedBlink
 
 //TChannel SerialChannel( Serial, OnSerialRead, OnSerialError );
 
-namespace DebugLog
-{
-	//	store last X messages for debug log
-	#define MAX_LOG_COUNT	10
-	TPacket		Logs[MAX_LOG_COUNT];
-	unsigned	LastLogIndex = MAX_LOG_COUNT-1;
-	void		Push(const TPacket& Log);
-	void		Enum(std::function<void(const TPacket&)> Enum);
-}
 
 void SerialDebug(const String& Text)
 {
 	TPacket Packet(Fourcc("#DBG"), Text);
 	LedBlink::Blink(3);	 
 
-	//DebugLog::Push( Packet );
+	DebugLog::Push( Packet );
 	
 	Serial.println(Text);
 	//SerialChannel.Write( Packet );
