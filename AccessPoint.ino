@@ -11,7 +11,7 @@
 
 namespace AccessPoint
 {
-	auto Ssid = "FoolMeChickenSoupWithRice";
+	auto Ssid = "Panopo.ly Camera";
 	auto Password = nullptr;//"12345678";
 
 	//	Soft AP network parameters
@@ -32,7 +32,7 @@ namespace AccessPoint
 	const IPAddress&	GetRouterIp();
 	const char*			GetSsid();
 
-	RequestHandler&		GetCaptivePortalRequestHandler(ESP8266WebServer& WebServer);
+	RequestHandler&		GetCaptivePortalRequestHandler(ESP8266WebServer& WebServer,std::function<bool()> EnableCaptivePortalRedirect);
 }
 
 
@@ -83,9 +83,10 @@ void AccessPoint::Shutdown()
 class TCaptivePortalRequestHandler : public RequestHandler 
 {
 public:
-	TCaptivePortalRequestHandler(ESP8266WebServer& WebServer,std::function<const IPAddress&()> GetRedirectIpAddress) :
+	TCaptivePortalRequestHandler(ESP8266WebServer& WebServer,std::function<const IPAddress&()> GetRedirectIpAddress,std::function<bool()> EnableCaptivePortalRedirect) :
 		mWebServer				( WebServer ),
-		mGetRedirectIpAddress	( GetRedirectIpAddress )
+		mGetRedirectIpAddress	( GetRedirectIpAddress ),
+		mEnableCaptivePortalRedirect	( EnableCaptivePortalRedirect )
 	{
 	}
 	
@@ -97,16 +98,17 @@ private:
 	//	need this to get the server being requested, which isn't passed to a RequestHandler
 	ESP8266WebServer&	mWebServer;
 	std::function<const IPAddress&()>	mGetRedirectIpAddress;
+	std::function<bool()>				mEnableCaptivePortalRedirect;
 };
 
 
 TCaptivePortalRequestHandler* CaptivePortalRequestHandler = nullptr;
 
-RequestHandler& AccessPoint::GetCaptivePortalRequestHandler(ESP8266WebServer& WebServer)
+RequestHandler& AccessPoint::GetCaptivePortalRequestHandler(ESP8266WebServer& WebServer,std::function<bool()> EnableCaptivePortalRedirect)
 {
 	if ( !CaptivePortalRequestHandler )
 	{
-		CaptivePortalRequestHandler = new TCaptivePortalRequestHandler( WebServer, GetRouterIp );
+		CaptivePortalRequestHandler = new TCaptivePortalRequestHandler( WebServer, GetRouterIp, EnableCaptivePortalRedirect );
 	}
 	else
 	{
@@ -143,6 +145,9 @@ bool TCaptivePortalRequestHandler::IsRequestForThisServer()
 
 bool TCaptivePortalRequestHandler::canHandle(HTTPMethod method, String uri)
 {
+	if ( !mEnableCaptivePortalRedirect() )
+		return false;
+		
 	if ( IsRequestForThisServer() )
 		return false;
 

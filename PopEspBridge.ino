@@ -5,7 +5,7 @@
 
 #define ESP_LED	1	//	LED_BUILTIN is wrong on ESP
 
-const char* Hostname = "esp";
+const char* Hostname = "panopo";
 
 void InitWebServer(std::function<void(const TPacket&)> OnPacket,std::function<void(const String&)> Debug);
 void UpdateWebServer();
@@ -196,6 +196,11 @@ void State_Init(WifiMode::TYPE Mode)
 }
 
 
+bool EnableRedirect()
+{
+	return TheState.mWifiMode == WifiMode::AccessPoint;
+}
+
 void setup() 
 {
 	SerialInit();
@@ -209,7 +214,7 @@ void setup()
 	};
 
 	//delay(1000);
-	InitWebServer( OnWebServerPacket, SerialDebug );
+	InitWebServer( OnWebServerPacket, SerialDebug, EnableRedirect );
 
 	State_Init( TheState.mWifiMode );
 }

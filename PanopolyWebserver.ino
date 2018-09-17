@@ -41,7 +41,7 @@ const char Page_Header[] = R"DONTPANIC(
 	<link rel="stylesheet" type="text/css" href="panopoly.css">
 </head>
 <body>
-<h1 id="Panopoly">Panopoly</h1>
+<h1 id="Panopoly"><a href=http://Panopo.local>Panopo.local</a></h1>
 )DONTPANIC";
 
 
@@ -96,7 +96,6 @@ void HandleRequest_Root()
 
 	*/
 	//WebServer.client().stop(); // Stop is needed because we sent no content length
-	Panopoly::Debug("Done root request");
 }
 
 

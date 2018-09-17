@@ -1,3 +1,5 @@
+#define FORCE_WIFI_SSID	"ZaegerMeister"
+#define FORCE_WIFI_PASS	"InTheYear2525"
 
 
 namespace Wifi
@@ -22,10 +24,13 @@ namespace Wifi
 
 bool Wifi::GetLogin(String& Ssid,String& Password)
 {
-	return false;
-	Ssid = "ZaegerMeister";
-	Password = "InTheYear2525";
+#if defined(FORCE_WIFI_SSID)
+	Ssid = FORCE_WIFI_SSID;
+	Password = FORCE_WIFI_PASS;
 	return true;
+#else
+	return false;
+#endif
 }
 
 

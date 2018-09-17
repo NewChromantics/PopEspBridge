@@ -4,7 +4,7 @@
 
 namespace AccessPoint
 {
-	RequestHandler&		GetCaptivePortalRequestHandler();
+	RequestHandler&		GetCaptivePortalRequestHandler(ESP8266WebServer& WebServer,std::function<bool()> EnableCaptivePortalRedirect);
 }
 
 void InitPanopolyWebServer(ESP8266WebServer& WebServer,std::function<void(const String&)> Debug);
@@ -40,10 +40,10 @@ void HandleRequest_NotFound()
 	WebServer.send(404, "text/plain", message);
 }
 
-void InitWebServer(std::function<void(const TPacket&)> OnPacket,std::function<void(const String&)> Debug)
+void InitWebServer(std::function<void(const TPacket&)> OnPacket,std::function<void(const String&)> Debug,std::function<bool()> EnableCaptivePortalRedirect)
 {
 	//	handle redirects etc as neccesary
-	auto& Handler = AccessPoint::GetCaptivePortalRequestHandler( WebServer );
+	auto& Handler = AccessPoint::GetCaptivePortalRequestHandler( WebServer, EnableCaptivePortalRedirect );
 	WebServer.addHandler( &Handler );
 
 	// Setup web pages: root, wifi config pages, SO captive portal detectors and not found. 
